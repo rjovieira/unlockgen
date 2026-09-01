@@ -54,7 +54,7 @@ be rejected. Devices typically allow a limited number of attempts before
 permanently locking the unlock function, so read
 [Limitations and caveats](#limitations-and-caveats) before you start guessing.
 
-> Confirmed working in practice on a **Huawei B593s-12**, which accepted the
+> Confirmed working in practice on a **Huawei B593s-22**, which accepted the
 > **V2** code.
 >
 > The IMEI used throughout this README (`490154203237518`) is the public
