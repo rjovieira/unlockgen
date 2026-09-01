@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unlockgen — Huawei unlock code generator</title>
+<meta name="description" content="Generate SIM-unlock and firmware-flash codes for Huawei modems, dongles and routers from their IMEI. Runs entirely in your browser; nothing is uploaded.">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🔓</text></svg>">
+</head>
+<body>
+
+<header>
+  <h1>unlockgen</h1>
+  <p class="tagline">
+    SIM-unlock and firmware-flash codes for Huawei modems, dongles and routers,
+    derived from the device IMEI.
+  </p>
+</header>
+
+<main>
+  <section class="card">
+    <form id="form" novalidate>
+      <label class="field" for="imei">
+        <span class="label">Device IMEI</span>
+      </label>
+      <p class="hint" id="imei-hint">
+        15 digits. Printed on the label under the battery or the underside of the
+        router, on the box, and shown in the device web UI under
+        <em>Device Information</em>.
+      </p>
+      <input
+        id="imei"
+        name="imei"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        maxlength="15"
+        placeholder="490154203237518"
+        aria-describedby="imei-hint status">
+      <p class="status" id="status" role="status"></p>
+      <div class="actions">
+        <button type="submit" class="primary">Generate codes</button>
+        <button type="button" id="example">Use the example IMEI</button>
+        <button type="button" id="clear">Clear</button>
+      </div>
+    </form>
+
+    <div class="results" id="results" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2>Which code do I type in?</h2>
+    <p>
+      Huawei shipped four code-generation algorithms over the years, and nothing
+      in the IMEI says which one your device uses — so all four are computed.
+      <strong>Try them in the order shown.</strong> One will be accepted; the
+      rest will be rejected.
+    </p>
+    <table>
+      <thead>
+        <tr><th scope="col">Code</th><th scope="col">Purpose</th><th scope="col">Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>V1</strong></td><td>SIM unlock</td><td>The oldest scheme. Early E-series dongles.</td></tr>
+        <tr><td><strong>V2</strong></td><td>SIM unlock</td><td>The most common. Widely used across dongles and routers.</td></tr>
+        <tr><td><strong>V3/201</strong></td><td>SIM unlock</td><td>Newer firmware. Also called “v201” in older tooling.</td></tr>
+        <tr><td><strong>Flash</strong></td><td>Firmware flashing</td><td>Not an unlock code — it authorises firmware writes.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note" style="margin-top:1.25rem">
+      <p><strong>Attempt counters are real.</strong> Most Huawei devices allow
+      around ten wrong unlock attempts before disabling the unlock function
+      permanently. Four codes is well within that budget — but do not
+      brute-force beyond them.</p>
+      <p style="margin-bottom:0"><strong>The Flash code is not an unlock code.</strong>
+      It authorises firmware writes, and a bad flash bricks the device. Do not
+      use it unless you know why you need it.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Privacy</h2>
+    <p>
+      Every code is computed by JavaScript running on this page. Your IMEI is
+      never sent anywhere — there is no server, no analytics and no network
+      request after the page loads. Once loaded, the page keeps working with the
+      connection off.
+    </p>
+    <p>
+      Still, treat your IMEI and its codes as private: given a known device
+      model, a code narrows the IMEI down to a range small enough to
+      brute-force, so publishing either one effectively publishes both. That is
+      also why this page never puts an IMEI in the URL.
+    </p>
+
+    <details>
+      <summary>Verify it yourself</summary>
+      <p>
+        The page runs the same test vectors that ship inside the Python script —
+        every one of the fourteen algorithm slots, both slot selectors, the
+        awkward leading-zero and padding branches, and one end-to-end IMEI.
+      </p>
+      <div class="actions">
+        <button type="button" id="self-test">Run the self test</button>
+      </div>
+      <p class="status" id="self-test-status" role="status"></p>
+      <p>
+        The generator is also cross-checked against
+        <code>unlockgen.py</code> on every commit, over tens of thousands of
+        IMEIs, by <code>tests/parity.mjs</code>.
+      </p>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Prefer the command line?</h2>
+    <p>The Python original is a single dependency-free file:</p>
+<pre><code>$ curl -O https://raw.githubusercontent.com/rjovieira/unlockgen/main/unlockgen.py
+$ python unlockgen.py 490154203237518
+IMEI: 490154203237518
+Unlock (V1):     49212137
+Unlock (V2):     29965404
+Unlock (V3/201): 18625085
+Flash:           50799099</code></pre>
+  </section>
+</main>
+
+<footer>
+  <p>
+    Unlocking a device you own is legal in many jurisdictions, and in several an
+    explicit statutory right — but not everywhere, and carrier contracts may say
+    otherwise regardless. Use this only on hardware you own or are authorised to
+    modify. Provided for interoperability and repair, with no warranty.
+  </p>
+  <p>
+    <a href="https://github.com/rjovieira/unlockgen">Source on GitHub</a> ·
+    <a href="https://github.com/rjovieira/unlockgen#how-it-works">How the algorithms work</a> ·
+    MIT licensed
+  </p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

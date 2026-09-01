@@ -15,11 +15,18 @@ Unlock (V3/201): 18625085
 Flash:           50799099
 ```
 
+**Nothing to install: [use it in your browser][web].** The same four algorithms,
+ported to JavaScript and running entirely on your own machine — no server, no
+upload, no analytics. See [Run it in your browser](#run-it-in-your-browser).
+
+[web]: https://rjovieira.github.io/unlockgen/
+
 ---
 
 ## Table of contents
 
 - [What this does](#what-this-does)
+- [Run it in your browser](#run-it-in-your-browser)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -63,10 +70,92 @@ permanently locking the unlock function, so read
 > IMEI down to a range small enough to brute-force, so publishing either one
 > effectively publishes both.
 
+## Run it in your browser
+
+**<https://rjovieira.github.io/unlockgen/>**
+
+Type the IMEI, get the four codes. It is the same algorithm set as
+`unlockgen.py`, ported to JavaScript and served as a static page from GitHub
+Pages.
+
+- **Nothing is uploaded.** The codes are computed by JavaScript in your own
+  browser. There is no server, no analytics, and no network request at all after
+  the page has loaded. The IMEI is never put in the URL, in browser history or
+  in storage — with a known device model a code narrows the IMEI down to a
+  brute-forceable range, so a URL containing either is a URL containing both.
+- **It works offline.** A service worker caches the page on first visit, which
+  matters when the device you are unlocking is the one your internet comes
+  through. It is network-first, so an update still lands as soon as you are
+  online again.
+- **No dependencies and no build step.** Seven static files, plain ES modules.
+  MD5, SHA-1 and CRC-32 are implemented in the page rather than pulled from a
+  library, because `crypto.subtle` offers no MD5 and the generators need to hash
+  raw scrambled buffers, not just text.
+
+### The files
+
+| File | Contents |
+| --- | --- |
+| `docs/index.html` | The page. |
+| `docs/styles.css` | Styling; light and dark follow the system setting. |
+| `docs/app.js` | Wiring only — input handling, rendering, clipboard. |
+| `docs/unlockgen.js` | The port itself — same slots, same names as `unlockgen.py`. |
+| `docs/digest.js` | MD5, SHA-1 and CRC-32. |
+| `docs/vectors.js` | The test vectors, shared by the in-page self test and CI. |
+| `docs/sw.js` | The offline cache. |
+
+### Using the JavaScript module
+
+`docs/unlockgen.js` is an ES module with no DOM dependencies, so it runs in a
+browser, in Node and in a bundler unchanged. The API mirrors the Python one:
+
+```js
+import { generateAll, unlock, Version } from "./docs/unlockgen.js";
+
+unlock("490154203237518", Version.V2);     // "29965404"
+unlock("490154203237518", 1);              // "49212137"  (legacy integer forms work)
+unlock("490154203237518", 201);            // "18625085"  (alias for V3)
+
+generateAll("490154203237518");
+// { "V1": "49212137", "V2": "29965404", "V3/201": "18625085", "Flash": "50799099" }
+```
+
+| Name | Description |
+| --- | --- |
+| `Version` | Frozen object: `V1`, `V2`, `V3`, `FLASH`. Each value is the display label. |
+| `unlock(imei, version = Version.V2)` | One eight-digit code. |
+| `generateAll(imei)` | Every code, keyed by label — the same shape as `--json`. |
+| `isValidIMEI(imei)` | Exactly 15 ASCII decimal digits. |
+| `hasValidLuhn(imei)` | Trailing check digit is consistent. |
+| `InvalidIMEIError` | Thrown on malformed IMEIs. |
+
+Keys and error messages match the Python side deliberately, so output from
+either implementation is interchangeable.
+
+### Running the page locally
+
+ES modules are not loadable over `file://`, so serve the directory rather than
+opening the HTML file:
+
+```console
+$ python -m http.server -d docs 8000
+$ open http://localhost:8000
+```
+
+### Publishing your own copy
+
+Fork the repository, then **Settings → Pages → Build and deployment**, source
+**Deploy from a branch**, branch **`main`**, folder **`/docs`**. There is no
+build step; the folder is served as-is. Your copy appears at
+`https://<user>.github.io/unlockgen/`.
+
 ## Requirements
 
-- Python **3.9 or newer** (tested on 3.9.6 and 3.14.6)
-- No third-party packages. Standard library only.
+- **Command line:** Python **3.9 or newer** (tested on 3.9.6 and 3.14.6). No
+  third-party packages; standard library only.
+- **Browser:** anything with ES module support — Chrome, Edge, Firefox and
+  Safari from 2018 onwards. No dependencies, no build step, no polyfills.
+- **Only to run the cross-implementation test:** Node **18 or newer**.
 
 ## Installation
 
@@ -302,6 +391,28 @@ They cover every one of the fourteen slots (seven each for V2 and V3), the slot
 selectors for both families, the awkward leading-zero and padding branches, and
 one end-to-end IMEI with all four codes.
 
+### The browser port
+
+The same 28 vectors run in the page: open it and expand *Verify it yourself →
+Run the self test*.
+
+That only proves the port passes the vectors, though, not that it agrees with
+the Python everywhere. `tests/parity.mjs` is the check that matters — it
+generates IMEIs from a seeded PRNG, runs each one through both implementations,
+and compares all four codes:
+
+```console
+$ node tests/parity.mjs 50000
+All 200030 checks passed (50000 IMEIs cross-checked against unlockgen.py).
+```
+
+Because the four codes fan out across all fourteen slots, a batch that size
+exercises each of them several thousand times. It also asserts the invariant
+every slot has its own fixup for: eight digits, never a leading zero. Pass a
+count to change the batch size, and `PYTHON=/path/to/python3` to pick the
+interpreter. CI runs it, plus the vectors and doctests on Python 3.9 and 3.13,
+on every push.
+
 ### Adding bulk vectors
 
 If you have a corpus of known-good IMEI/code pairs, drop them next to the script
@@ -356,6 +467,10 @@ The algorithms were reverse-engineered from Huawei firmware by the modem
 unlocking community over many years; slot 6 in particular is a transcription of
 compiled ARM code. This file descends from the widely circulated `unlockgen.py`,
 [most recently via this gist][gist].
+
+The JavaScript in `docs/` is a port of the Python file in this repository, not
+of the original script, and is held to the same output byte-for-byte by
+`tests/parity.mjs`. Where the two ever disagree, the Python is the reference.
 
 This version is a Python 3 rewrite: the Python 2 compatibility shims are gone,
 the lookup tables are module-level constants rather than being rebuilt on every
