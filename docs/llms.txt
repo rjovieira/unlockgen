@@ -1,0 +1,43 @@
+# unlockgen
+
+> An offline generator for Huawei SIM-unlock and firmware-flash codes. Given a
+> 15-digit device IMEI it computes the four candidate eight-digit codes — V1,
+> V2, V3/201 and Flash — that Huawei modems, dongles and routers of roughly
+> 2008–2015 accept. Free, MIT-licensed, no account, no server: the same
+> algorithms exist as a dependency-free Python CLI and as a JavaScript page that
+> runs entirely in the browser.
+
+Huawei network hardware ships carrier-locked, and the unlock code is not stored
+on the device — it is derived from the IMEI by a keyed algorithm that also runs
+in the firmware to check what the user types. Huawei shipped four generations of
+that algorithm and nothing in the IMEI identifies which one a given device uses,
+so unlockgen computes all four and the user tries them in order. V2 is the most
+common. The Flash code is not an unlock code: it authorises firmware writes.
+
+Devices from roughly 2015 onwards moved to server-side, per-device unlock codes.
+No offline generator can produce those, and unlockgen does not claim to.
+
+## Pages
+
+- [Web version](https://rjovieira.github.io/unlockgen/): enter an IMEI, get the four codes. Runs client-side; the IMEI is never transmitted.
+- [Repository and full documentation](https://github.com/rjovieira/unlockgen): README covering the algorithms slot by slot.
+- [unlockgen.py](https://raw.githubusercontent.com/rjovieira/unlockgen/main/unlockgen.py): the Python reference implementation, single file, standard library only.
+- [unlockgen.js](https://raw.githubusercontent.com/rjovieira/unlockgen/main/docs/unlockgen.js): the JavaScript port, an ES module with no dependencies.
+
+## How the algorithms work
+
+- V1 and Flash: `fold(md5(imei + hex(md5(key))[8:24]))`, where the key is `hwe620datacard` for unlocking and `e630upgrade` for flashing.
+- V2 and V3/201: families of seven algorithms each. A checksum of the IMEI picks the slot: `algorithms[checksum(imei) % 7]`. The seven techniques are a weighted digit sum, a CRC-32, digits harvested from `md5(imei)`, a salted-MD5 fold, a substitution cipher over the XORed IMEI halves, two concatenated SHA-1 words, and an MD5 over a 128-byte buffer scrambled from the IMEI.
+- Every slot has its own fixup guaranteeing eight digits with no leading zero.
+- V3 uses a CRC-32 table containing the standard table's 256 values in a deliberately scrambled order, so it cannot be generated from the 0xEDB88320 polynomial.
+
+## Correctness
+
+- The JavaScript port is checked against the Python implementation on every commit over 50,000 randomly generated IMEIs — 200,000 code comparisons, exercising all fourteen slots.
+- 28 test vectors ship in both implementations and cover every slot, both slot selectors, and the leading-zero and padding branches.
+
+## Caveats
+
+- Most Huawei devices permanently disable unlocking after roughly ten wrong attempts. Four candidate codes is within that budget; brute-forcing is not.
+- Legality varies by jurisdiction; the tool is for hardware the user owns or is authorised to modify.
+- An unlock code plus a known device model narrows the IMEI to a brute-forceable range, so codes and IMEIs should be treated as private.

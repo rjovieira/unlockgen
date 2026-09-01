@@ -3,20 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>unlockgen — Huawei unlock code generator</title>
-<meta name="description" content="Generate SIM-unlock and firmware-flash codes for Huawei modems, dongles and routers from their IMEI. Runs entirely in your browser; nothing is uploaded.">
+<title>Huawei Router &amp; Modem Unlock Code Generator (from IMEI) — unlockgen</title>
+<meta name="description" content="Free, open-source Huawei unlock code generator. Enter your router, modem or dongle IMEI and get all four candidate unlock codes (V1, V2, V3/201) plus the flash code. Runs entirely in your browser — nothing is uploaded.">
 <meta name="color-scheme" content="light dark">
 <meta name="referrer" content="no-referrer">
+<link rel="canonical" href="https://rjovieira.github.io/unlockgen/">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="unlockgen">
+<meta property="og:url" content="https://rjovieira.github.io/unlockgen/">
+<meta property="og:title" content="Huawei Router &amp; Modem Unlock Code Generator (from IMEI)">
+<meta property="og:description" content="Enter your Huawei router, modem or dongle IMEI and get all four candidate unlock codes plus the flash code. Free, open source, and computed entirely in your browser.">
+<meta property="og:image" content="https://rjovieira.github.io/unlockgen/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="unlockgen — Huawei unlock code generator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Huawei Router &amp; Modem Unlock Code Generator (from IMEI)">
+<meta name="twitter:description" content="All four candidate Huawei unlock codes from an IMEI, computed in your browser. Free and open source.">
+<meta name="twitter:image" content="https://rjovieira.github.io/unlockgen/og-image.png">
+
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🔓</text></svg>">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://rjovieira.github.io/unlockgen/#app",
+      "name": "unlockgen",
+      "alternateName": "Huawei Unlock Code Generator",
+      "url": "https://rjovieira.github.io/unlockgen/",
+      "description": "Generates the four candidate SIM-unlock codes and the firmware-flash code for Huawei modems, dongles and routers from the device IMEI. Runs entirely in the browser.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any web browser",
+      "browserRequirements": "Requires JavaScript and ES module support",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "license": "https://github.com/rjovieira/unlockgen/blob/main/LICENSE",
+      "codeRepository": "https://github.com/rjovieira/unlockgen",
+      "programmingLanguage": ["JavaScript", "Python"],
+      "author": { "@type": "Person", "name": "Ricardo Vieira", "url": "https://github.com/rjovieira" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://rjovieira.github.io/unlockgen/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Which of the four codes do I type into my Huawei router?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Try them in the order shown. Huawei shipped four code-generation algorithms and nothing in the IMEI reveals which one your device uses, so all four are computed. V2 is the most common across routers and dongles. The Flash code is not an unlock code — it authorises firmware writes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it safe to try all four unlock codes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most Huawei devices allow around ten wrong unlock attempts before permanently disabling the unlock function. Four codes is well within that budget, but do not guess beyond them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "None of the codes work. What now?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Huawei moved to server-side, per-device unlock codes on hardware from roughly 2015 onwards. If none of the four codes are accepted, the device almost certainly uses that scheme, and no offline generator can produce its code."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my IMEI sent to a server?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. The codes are computed by JavaScript in your own browser. There is no server, no analytics and no network request after the page loads, and the IMEI is never written to the URL, browser history or storage."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where do I find my Huawei device IMEI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is the 15-digit number printed on the label under the battery or on the underside of the router, on the box, and shown in the device web interface under Device Information. Over an AT-command serial interface, AT+CGSN returns it."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
 <header>
   <h1>unlockgen</h1>
   <p class="tagline">
-    SIM-unlock and firmware-flash codes for Huawei modems, dongles and routers,
-    derived from the device IMEI.
+    A free, open-source <strong>Huawei unlock code generator</strong> for
+    routers, modems and dongles. Enter the device IMEI; the codes are computed
+    in your browser.
   </p>
 </header>
 
@@ -83,6 +172,106 @@
       It authorises firmware writes, and a bad flash bricks the device. Do not
       use it unless you know why you need it.</p>
     </div>
+  </section>
+
+  <section class="card">
+    <h2>Which devices does this work on?</h2>
+    <p>
+      These four algorithms are the ones Huawei used while unlock codes were
+      still derived on the device — broadly the hardware of 2008 to 2015. That
+      covers the E-series USB dongles and mobile hotspots and the B-series
+      home routers of that era, sold under carrier names worldwide.
+    </p>
+    <p>
+      Nothing in an IMEI identifies the model, so this is a description of a
+      period rather than a compatibility list, and there is no way to tell in
+      advance whether a particular unit is in scope. The cheap test is simply to
+      generate the codes and try them.
+    </p>
+    <p>
+      Huawei moved to <strong>server-side, per-device unlock codes</strong> on
+      later hardware, from roughly 2015 onwards. If none of the four codes are
+      accepted, the device almost certainly uses that scheme — and no offline
+      generator, this one included, can produce its code.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>How the codes are derived</h2>
+    <p>
+      The unlock code is not stored on your device. It is computed from the IMEI
+      by a keyed algorithm, and the same algorithm runs in the firmware to check
+      what you type — which is why a code can be worked out offline at all.
+    </p>
+    <p>
+      <strong>V1 and Flash</strong> are the simplest: a hardcoded key is hashed,
+      a slice of that hash becomes a salt, the IMEI is hashed with it, and the
+      16-byte digest is folded down into eight digits. The two differ only in
+      the key — one for unlocking, one for authorising firmware writes.
+    </p>
+    <p>
+      <strong>V2 and V3/201</strong> are not single algorithms but families of
+      seven. A checksum of the IMEI picks which one to use, so two IMEIs one
+      digit apart can be handled by completely different code. The seven
+      techniques are a weighted digit sum, a CRC-32, digits harvested out of an
+      MD5, a salted-MD5 fold, a substitution cipher over the XORed halves of the
+      IMEI, two concatenated words of a SHA-1, and an MD5 taken over a 128-byte
+      buffer scrambled out of the IMEI.
+    </p>
+    <p>
+      Two details look like bugs and are not. Huawei's CRC-32 table holds the
+      same 256 values as the textbook table but in a scrambled order, so it
+      cannot be generated from the usual polynomial and has to be embedded
+      verbatim. And no code may begin with a zero, so every one of the fourteen
+      slots carries its own fixup for that case — which is where most of the
+      awkwardness in the implementation lives.
+    </p>
+    <p>
+      The full slot-by-slot breakdown is in the
+      <a href="https://github.com/rjovieira/unlockgen#how-it-works">repository README</a>.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Questions</h2>
+
+    <h3>Which of the four codes do I type into my Huawei router?</h3>
+    <p>
+      Try them in the order shown. Huawei shipped four code-generation
+      algorithms and nothing in the IMEI reveals which one your device uses, so
+      all four are computed. V2 is the most common across routers and dongles.
+      The Flash code is not an unlock code — it authorises firmware writes.
+    </p>
+
+    <h3>Is it safe to try all four unlock codes?</h3>
+    <p>
+      Most Huawei devices allow around ten wrong unlock attempts before
+      permanently disabling the unlock function. Four codes is well within that
+      budget, but do not guess beyond them.
+    </p>
+
+    <h3>None of the codes work. What now?</h3>
+    <p>
+      Huawei moved to server-side, per-device unlock codes on hardware from
+      roughly 2015 onwards. If none of the four codes are accepted, the device
+      almost certainly uses that scheme, and no offline generator can produce
+      its code.
+    </p>
+
+    <h3>Is my IMEI sent to a server?</h3>
+    <p>
+      No. The codes are computed by JavaScript in your own browser. There is no
+      server, no analytics and no network request after the page loads, and the
+      IMEI is never written to the URL, browser history or storage.
+    </p>
+
+    <h3>Where do I find my Huawei device IMEI?</h3>
+    <p>
+      It is the 15-digit number printed on the label under the battery or on the
+      underside of the router, on the box, and shown in the device web interface
+      under <em>Device Information</em>. Over an AT-command serial interface,
+      <code>AT+CGSN</code> returns it.
+    </p>
   </section>
 
   <section class="card">

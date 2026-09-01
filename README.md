@@ -87,7 +87,7 @@ Pages.
   matters when the device you are unlocking is the one your internet comes
   through. It is network-first, so an update still lands as soon as you are
   online again.
-- **No dependencies and no build step.** Seven static files, plain ES modules.
+- **No dependencies and no build step.** Static files and plain ES modules.
   MD5, SHA-1 and CRC-32 are implemented in the page rather than pulled from a
   library, because `crypto.subtle` offers no MD5 and the generators need to hash
   raw scrambled buffers, not just text.
@@ -103,6 +103,10 @@ Pages.
 | `docs/digest.js` | MD5, SHA-1 and CRC-32. |
 | `docs/vectors.js` | The test vectors, shared by the in-page self test and CI. |
 | `docs/sw.js` | The offline cache. |
+| `docs/robots.txt` | Crawl policy — everything allowed, AI crawlers included. |
+| `docs/sitemap.xml` | One-URL sitemap, for submission to search consoles. |
+| `docs/llms.txt` | A plain-text summary of the project for language models. |
+| `docs/og-image.png` | Social/link preview card, 1200×630. |
 
 ### Using the JavaScript module
 
@@ -148,6 +152,39 @@ Fork the repository, then **Settings → Pages → Build and deployment**, sourc
 **Deploy from a branch**, branch **`main`**, folder **`/docs`**. There is no
 build step; the folder is served as-is. Your copy appears at
 `https://<user>.github.io/unlockgen/`.
+
+If you fork, update the absolute URLs in `docs/index.html` (`canonical`, the
+`og:`/`twitter:` tags), `docs/sitemap.xml`, `docs/robots.txt` and
+`docs/llms.txt` to point at your own copy.
+
+### Getting it indexed
+
+The page ships the technical prerequisites — a canonical URL, a description,
+Open Graph and Twitter card tags, `SoftwareApplication` and `FAQPage` structured
+data, a sitemap and an `llms.txt`. The content is static HTML, so a crawler that
+does not execute JavaScript still sees all of it. What is left is owner-side and
+cannot live in the repository:
+
+1. **Submit the sitemap.** Add a URL-prefix property for
+   `https://<user>.github.io/unlockgen/` in [Google Search Console][gsc],
+   verify it with the HTML file it offers (drop that file into `docs/`), submit
+   `sitemap.xml`, then use *URL Inspection → Request Indexing* for the first
+   crawl. Repeat in [Bing Webmaster Tools][bing] — several AI answer engines are
+   built on Bing's index rather than their own crawl.
+2. **Point the repository at the page.** Set the repository's *Website* field to
+   the Pages URL and add topics (`huawei`, `unlock-code`, `imei`, `router`,
+   `modem`). GitHub is crawled heavily, so the repository is usually indexed
+   long before the Pages site is, and it is what carries the link.
+
+One thing a sitemap cannot do is make the page *rank*. `robots.txt` and
+`sitemap.xml` only affect discovery; position on a competitive query is a
+function of links and content, and the commercial "unlock code" queries are
+contested by paid services. Realistically this page will do well on specific,
+long-tail searches — a model number plus "unlock code", or the algorithm names —
+long before it does on the head terms.
+
+[gsc]: https://search.google.com/search-console
+[bing]: https://www.bing.com/webmasters
 
 ## Requirements
 
