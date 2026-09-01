@@ -410,7 +410,7 @@ Because the four codes fan out across all fourteen slots, a batch that size
 exercises each of them several thousand times. It also asserts the invariant
 every slot has its own fixup for: eight digits, never a leading zero. Pass a
 count to change the batch size, and `PYTHON=/path/to/python3` to pick the
-interpreter. CI runs it, plus the vectors and doctests on Python 3.9 and 3.13,
+interpreter. CI runs it, plus the vectors and doctests on Python 3.14,
 on every push.
 
 ### Adding bulk vectors
