@@ -73,7 +73,7 @@ permanently locking the unlock function, so read
 There is nothing to install. Download the single file and run it:
 
 ```console
-$ curl -O https://raw.githubusercontent.com/<you>/unlockgen/main/unlockgen.py
+$ curl -O https://raw.githubusercontent.com/rjovieira/unlockgen/refs/heads/main/unlockgen.py
 $ python unlockgen.py 490154203237518
 ```
 
